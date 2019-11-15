@@ -14,13 +14,17 @@ const BITCOINJS_NETWORK_INFO = {
   testnet: coininfo.bitcoin.test.toBitcoinJS(),
   regtest: coininfo.bitcoin.regtest.toBitcoinJS(),
   litecoin: coininfo.litecoin.main.toBitcoinJS(),
-  litecoin_testnet: coininfo.litecoin.test.toBitcoinJS()
+  litecoin_testnet: coininfo.litecoin.test.toBitcoinJS(),
+  groestlcoin: coininfo.groestlcoin.main.toBitcoinJS(),
+  groestlcoin_testnet: coininfo.groestlcoin.test.toBitcoinJS()
 }
 BITCOINJS_NETWORK_INFO.bitcoin.bech32 = 'bc'
 BITCOINJS_NETWORK_INFO.testnet.bech32 = 'tb'
 BITCOINJS_NETWORK_INFO.regtest.bech32 = 'bcrt'
 BITCOINJS_NETWORK_INFO.litecoin.bech32 = 'ltc'
 BITCOINJS_NETWORK_INFO.litecoin_testnet.bech32 = 'tltc'
+BITCOINJS_NETWORK_INFO.groestlcoin.bech32 = 'grs'
+BITCOINJS_NETWORK_INFO.groestlcoin_testnet.bech32 = 'tgrs'
 
 // defaults for encode; default timestamp is current time at call
 const DEFAULTNETWORKSTRING = 'testnet'
@@ -36,7 +40,9 @@ const BECH32CODES = {
   tb: 'testnet',
   bcrt: 'regtest',
   ltc: 'litecoin',
-  tltc: 'litecoin_testnet'
+  tltc: 'litecoin_testnet',
+  grs: 'groestlcoin',
+  tgrs: 'groestlcoin_testnet'
 }
 
 const DIVISORS = {
