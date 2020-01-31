@@ -5,7 +5,7 @@ const bech32 = require('bech32')
 const secp256k1 = require('secp256k1')
 const Buffer = require('safe-buffer').Buffer
 const BN = require('bn.js')
-const bitcoinjsAddress = require('bitcoinjs-lib/src/address')
+const bitcoinjsAddress = require('groestlcoinjs-lib/src/address')
 const cloneDeep = require('lodash/cloneDeep')
 const coininfo = require('coininfo')
 
@@ -468,7 +468,7 @@ function encode (inputData, addDefaults) {
   } else if (data.coinType === undefined && canReconstruct) {
     throw new Error('Need coinType for proper payment request reconstruction')
   } else {
-    // if the coinType is not a valid name of a network in bitcoinjs-lib, fail
+    // if the coinType is not a valid name of a network in groestlcoinjs-lib, fail
     if (!BITCOINJS_NETWORK_INFO[data.coinType]) throw new Error('Unknown coin type')
     coinTypeObj = BITCOINJS_NETWORK_INFO[data.coinType]
   }
