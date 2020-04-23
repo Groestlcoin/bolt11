@@ -183,7 +183,7 @@ function tagsContainItem (tags, tagName) {
 tape('decode detects invalid network', (t) => {
   const f = fixtures.decode.valid[3]
   t.throws(() => {
-    lnpayreq.decode(f.paymentRequest, { bech32: 'bc' })
+    lnpayreq.decode(f.paymentRequest, { bech32: 'grs' })
   }, new RegExp('Invalid network'))
   t.end()
 })
@@ -228,7 +228,7 @@ tape('can decode and encode payment request containing unknown tags', (t) => {
                          '0letwxlm22hngu8n88g7hsp542qpl'
 
   const decoded = lnpayreq.decode(paymentRequest, {
-    bech32: 'tb',
+    bech32: 'tgrs',
     pubKeyHash: 0x6f,
     scriptHash: 0xc4,
     validWitnessVersions: [0]
@@ -255,7 +255,7 @@ tape('can decode and encode payment request containing unknown tags', (t) => {
 
 tape('can decode unknown network payment request', (t) => {
   const network = {
-    bech32: 'sb',
+    bech32: 'sgrs',
     pubKeyHash: 0x6f,
     scriptHash: 0xc4,
     validWitnessVersions: [0]
