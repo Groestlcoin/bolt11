@@ -5,7 +5,7 @@ const bech32 = require('bech32')
 const secp256k1 = require('secp256k1')
 const Buffer = require('safe-buffer').Buffer
 const BN = require('bn.js')
-const bitcoinjsAddress = require('bitcoinjs-lib/src/address')
+const bitcoinjsAddress = require('groestlcoinjs-lib/src/address')
 const cloneDeep = require('lodash/cloneDeep')
 const coininfo = require('coininfo')
 
@@ -14,13 +14,17 @@ const BITCOINJS_NETWORK_INFO = {
   testnet: coininfo.bitcoin.test.toBitcoinJS(),
   regtest: coininfo.bitcoin.regtest.toBitcoinJS(),
   litecoin: coininfo.litecoin.main.toBitcoinJS(),
-  litecoin_testnet: coininfo.litecoin.test.toBitcoinJS()
+  litecoin_testnet: coininfo.litecoin.test.toBitcoinJS(),
+  groestlcoin: coininfo.groestlcoin.main.toBitcoinJS(),
+  groestlcoin_testnet: coininfo.groestlcoin.test.toBitcoinJS()
 }
 BITCOINJS_NETWORK_INFO.bitcoin.bech32 = 'bc'
 BITCOINJS_NETWORK_INFO.testnet.bech32 = 'tb'
 BITCOINJS_NETWORK_INFO.regtest.bech32 = 'bcrt'
 BITCOINJS_NETWORK_INFO.litecoin.bech32 = 'ltc'
 BITCOINJS_NETWORK_INFO.litecoin_testnet.bech32 = 'tltc'
+BITCOINJS_NETWORK_INFO.groestlcoin.bech32 = 'grs'
+BITCOINJS_NETWORK_INFO.groestlcoin_testnet.bech32 = 'tgrs'
 
 // defaults for encode; default timestamp is current time at call
 const DEFAULTNETWORKSTRING = 'testnet'
@@ -36,7 +40,9 @@ const BECH32CODES = {
   tb: 'testnet',
   bcrt: 'regtest',
   ltc: 'litecoin',
-  tltc: 'litecoin_testnet'
+  tltc: 'litecoin_testnet',
+  grs: 'groestlcoin',
+  tgrs: 'groestlcoin_testnet'
 }
 
 const DIVISORS = {
@@ -46,7 +52,7 @@ const DIVISORS = {
   p: new BN(1e12, 10)
 }
 
-const MAX_MILLISATS = new BN('2100000000000000000', 10)
+const MAX_MILLISATS = new BN('10500000000000000000', 10)
 
 const MILLISATS_PER_BTC = new BN(1e11, 10)
 const MILLISATS_PER_MILLIBTC = new BN(1e8, 10)
@@ -462,7 +468,7 @@ function encode (inputData, addDefaults) {
   } else if (data.coinType === undefined && canReconstruct) {
     throw new Error('Need coinType for proper payment request reconstruction')
   } else {
-    // if the coinType is not a valid name of a network in bitcoinjs-lib, fail
+    // if the coinType is not a valid name of a network in groestlcoinjs-lib, fail
     if (!BITCOINJS_NETWORK_INFO[data.coinType]) throw new Error('Unknown coin type')
     coinTypeObj = BITCOINJS_NETWORK_INFO[data.coinType]
   }

@@ -1,23 +1,23 @@
-# bolt11
+# bolt11grs
 A library for encoding and decoding lightning network payment requests as defined in [BOLT #11](https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md).
 
 
 ## Installation
 ``` bash
-npm install bolt11
+npm install bolt11grs
 ```
 
 ## Setup
 ### Node.js
 ``` javascript
-var lightningPayReq = require('bolt11')
+var lightningPayReq = require('bolt11grs')
 ```
 
 
 ## Examples
 ### Decoding
 ``` javascript
-var decoded = lightningPayReq.decode('lnbc20m1pvjluezhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfppqw508d6qejxtdg4y5r3zarvary0c5xw7kepvrhrm9s57hejg0p662ur5j5cr03890fa7k2pypgttmh4897d3raaq85a293e9jpuqwl0rnfuwzam7yr8e690nd2ypcq9hlkdwdvycqa0qza8')
+var decoded = lightningPayReq.decode('lngrs20m1pvjluezhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfppqw508d6qejxtdg4y5r3zarvary0c5xw7kepvrhrm9s57hejg0p662ur5j5cr03890fa7k2pypgttmh4897d3raaq85a293e9jpuqwl0rnfuwzam7yr8e690nd2ypcq9hlkdwdvycqa0qza8')
 /* decoded == below
 {
   "coinType": "bitcoin",
@@ -80,7 +80,7 @@ exact order of the original signed request.
 
 ``` javascript
 var encoded = lightningPayReq.encode({
-  "coinType": "bitcoin",
+  "coinType": "groestlcoin",
   "satoshis": 2000,
   "timestamp": 1496314658,
   "tags": [
@@ -95,7 +95,7 @@ var encoded = lightningPayReq.encode({
     {
       "tagName": "fallback_address",
       "data": {
-        "address": "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+        "address": "grs1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
       }
     }
   ]
