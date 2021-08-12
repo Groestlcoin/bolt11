@@ -23,7 +23,7 @@ const TESTNETWORK = {
   validWitnessVersions: [0]
 }
 const REGTESTNETWORK = {
-  bech32: 'bcrt',
+  bech32: 'grsrt',
   pubKeyHash: 0x6f,
   scriptHash: 0xc4,
   validWitnessVersions: [0]
