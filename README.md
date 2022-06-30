@@ -17,6 +17,7 @@ var lightningPayReq = require('bolt11grs')
 ## Examples
 ### Decoding
 ``` javascript
+// The tags array output can be parsed into an object using the tagsObject getter (see below)
 var decoded = lightningPayReq.decode('lngrs20u1pvjluezhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfppqw508d6qejxtdg4y5r3zarvary0c5xw7kxqrrsssp5m6kmam774klwlh4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhs9qypqqqcqpf3cwux5979a8j28d4ydwahx00saa68wq3az7v9jdgzkghtxnkf3z5t7q5suyq2dl9tqwsap8j0wptc82cpyvey9gf6zyylzrm60qtcqsq7egtsq')
 /* decoded == below
 {
@@ -26,9 +27,7 @@ var decoded = lightningPayReq.decode('lngrs20u1pvjluezhp58yjmdan79s6qqdhdzgynm4z
     "bech32": "grs",
     "pubKeyHash": 36,
     "scriptHash": 5,
-    "validWitnessVersions": [
-      0
-    ]
+    "validWitnessVersions": [0, 1]
   },
   "payeeNodeKey": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
   "paymentRequest": "lngrs20u1pvjluezhp58yjmdan79s6qqdhdzgynm4zwqd5d7xmw5fk98klysy043l2ahrqspp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqfppqw508d6qejxtdg4y5r3zarvary0c5xw7kxqrrsssp5m6kmam774klwlh4dhmhaatd7al02m0h0m6kmam774klwlh4dhmhs9qypqqqcqpf3cwux5979a8j28d4ydwahx00saa68wq3az7v9jdgzkghtxnkf3z5t7q5suyq2dl9tqwsap8j0wptc82cpyvey9gf6zyylzrm60qtcqsq7egtsq",
@@ -126,6 +125,74 @@ var decoded = lightningPayReq.decode('lngrs20u1pvjluezhp58yjmdan79s6qqdhdzgynm4z
 */
 ```
 
+### Get tags as an object
+```javascript
+// decoded is from above
+decoded.tagsObject
+/*
+{
+  "purpose_commit_hash": "3925b6f67e2c340036ed12093dd44e0368df1b6ea26c53dbe4811f58fd5db8c1",
+  "payment_hash": "0001020304050607080900010203040506070809000102030405060708090102",
+  "fallback_address": {
+    "code": 0,
+    "address": "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+    "addressHash": "751e76e8199196d454941c45d1b3a323f1433bd6"
+  },
+  "expire_time": 3600,
+  "payment_secret": "deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
+  "feature_bits": {
+    "word_length": 4,
+    "option_data_loss_protect": {
+      "required": false,
+      "supported": false
+    },
+    "initial_routing_sync": {
+      "required": false,
+      "supported": false
+    },
+    "option_upfront_shutdown_script": {
+      "required": false,
+      "supported": false
+    },
+    "gossip_queries": {
+      "required": false,
+      "supported": false
+    },
+    "var_onion_optin": {
+      "required": false,
+      "supported": false
+    },
+    "gossip_queries_ex": {
+      "required": false,
+      "supported": false
+    },
+    "option_static_remotekey": {
+      "required": false,
+      "supported": false
+    },
+    "payment_secret": {
+      "required": false,
+      "supported": true
+    },
+    "basic_mpp": {
+      "required": false,
+      "supported": false
+    },
+    "option_support_large_channel": {
+      "required": false,
+      "supported": false
+    },
+    "extra_bits": {
+      "start_bit": 20,
+      "bits": [],
+      "has_required": false
+    }
+  },
+  "min_final_cltv_expiry": 9
+}
+*/
+```
+
 ### Warning
 The `"satoshis"` field will only be set if the invoice is for a whole number of satoshis. If it is in a fractional number of satoshis, the `"millisatoshis"` field must be used. 1000 millisatoshis is 1 satoshi.
 
@@ -150,7 +217,7 @@ var encoded = lightningPayReq.encode({
     "bech32": "grs",
     "pubKeyHash": 36,
     "scriptHash": 5,
-    "validWitnessVersions": [0]
+    "validWitnessVersions": [0, 1]
   },
   "satoshis": 2000,
   "timestamp": 1496314658,

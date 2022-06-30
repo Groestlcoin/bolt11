@@ -5,7 +5,7 @@ const bech32 = require('bech32')
 const secp256k1 = require('secp256k1')
 const Buffer = require('safe-buffer').Buffer
 const BN = require('bn.js')
-const bitcoinjsAddress = require('groestlcoinjs-lib/src/address')
+const bitcoinjsAddress = require('groestlcoinjs-lib').address
 const cloneDeep = require('lodash/cloneDeep')
 
 // defaults for encode; default timestamp is current time at call
@@ -14,25 +14,25 @@ const DEFAULTNETWORK = {
   bech32: 'grs',
   pubKeyHash: 0x24,
   scriptHash: 0x05,
-  validWitnessVersions: [0]
+  validWitnessVersions: [0, 1]
 }
 const TESTNETWORK = {
   bech32: 'tgrs',
   pubKeyHash: 0x6f,
   scriptHash: 0xc4,
-  validWitnessVersions: [0]
+  validWitnessVersions: [0, 1]
 }
 const REGTESTNETWORK = {
   bech32: 'grsrt',
   pubKeyHash: 0x6f,
   scriptHash: 0xc4,
-  validWitnessVersions: [0]
+  validWitnessVersions: [0, 1]
 }
 const SIMNETWORK = {
   bech32: 'sgrs',
   pubKeyHash: 0x3f,
   scriptHash: 0x7b,
-  validWitnessVersions: [0]
+  validWitnessVersions: [0, 1]
 }
 const DEFAULTEXPIRETIME = 3600
 const DEFAULTCLTVEXPIRY = 9
@@ -232,6 +232,7 @@ function fallbackAddressParser (words, network) {
       address = bitcoinjsAddress.toBase58Check(addressHash, network.scriptHash)
       break
     case 0:
+    case 1:
       address = bitcoinjsAddress.toBech32(addressHash, version, network.bech32)
       break
   }
@@ -244,7 +245,7 @@ function fallbackAddressParser (words, network) {
 }
 
 // the code is the witness version OR 17 for P2PKH OR 18 for P2SH
-// anything besides code 17 or 18 should be bech32 encoded address.
+// anything besides code 17 or 18 should be bech32 or bech32m encoded address.
 // 1 word for the code, and right pad with 0 if necessary for the addressHash
 // (address parsing for encode is done in the encode function)
 function fallbackAddressEncoder (data, network) {
@@ -404,11 +405,24 @@ function tagsContainItem (tags, tagName) {
   return tagsItems(tags, tagName) !== null
 }
 
-function orderKeys (unorderedObj) {
+function orderKeys (unorderedObj, forDecode) {
   const orderedObj = {}
   Object.keys(unorderedObj).sort().forEach((key) => {
     orderedObj[key] = unorderedObj[key]
   })
+  if (forDecode === true) {
+    const cacheName = '__tagsObject_cache'
+    Object.defineProperty(orderedObj, 'tagsObject', {
+      get () {
+        if (!this[cacheName]) {
+          Object.defineProperty(this, cacheName, {
+            value: getTagsObject(this.tags)
+          })
+        }
+        return this[cacheName]
+      }
+    })
+  }
   return orderedObj
 }
 
@@ -510,7 +524,7 @@ function sign (inputPayReqObj, inputPrivateKey) {
   // make sure if either exist they are in nodePublicKey
   nodePublicKey = tagNodePublicKey || nodePublicKey
 
-  const publicKey = secp256k1.publicKeyCreate(privateKey)
+  const publicKey = Buffer.from(secp256k1.publicKeyCreate(privateKey))
 
   // Check if pubkey matches for private key
   if (nodePublicKey && !publicKey.equals(nodePublicKey)) {
@@ -529,13 +543,14 @@ function sign (inputPayReqObj, inputPrivateKey) {
   // signature is 64 bytes (32 byte r value and 32 byte s value concatenated)
   // PLUS one extra byte appended to the right with the recoveryID in [0,1,2,3]
   // Then convert to 5 bit words with right padding 0 bits.
-  const sigObj = secp256k1.sign(payReqHash, privateKey)
-  const sigWords = hexToWord(sigObj.signature.toString('hex') + '0' + sigObj.recovery)
+  const sigObj = secp256k1.ecdsaSign(payReqHash, privateKey)
+  sigObj.signature = Buffer.from(sigObj.signature)
+  const sigWords = hexToWord(sigObj.signature.toString('hex') + '0' + sigObj.recid)
 
   // append signature words to the words, mark as complete, and add the payreq
   payReqObj.payeeNodeKey = publicKey.toString('hex')
   payReqObj.signature = sigObj.signature.toString('hex')
-  payReqObj.recoveryFlag = sigObj.recovery
+  payReqObj.recoveryFlag = sigObj.recid
   payReqObj.wordsTemp = bech32.encode('temp', words.concat(sigWords), Number.MAX_SAFE_INTEGER)
   payReqObj.complete = true
   payReqObj.paymentRequest = bech32.encode(payReqObj.prefix, words.concat(sigWords), Number.MAX_SAFE_INTEGER)
@@ -812,7 +827,7 @@ function encode (inputData, addDefaults) {
     Earlier we check if the private key matches the payee node key IF they
     gave one. */
     if (nodePublicKey) {
-      const recoveredPubkey = secp256k1.recover(payReqHash, Buffer.from(data.signature, 'hex'), data.recoveryFlag, true)
+      const recoveredPubkey = Buffer.from(secp256k1.ecdsaRecover(Buffer.from(data.signature, 'hex'), data.recoveryFlag, payReqHash, true))
       if (nodePublicKey && !nodePublicKey.equals(recoveredPubkey)) {
         throw new Error('Signature, message, and recoveryID did not produce the same pubkey as payeeNodeKey')
       }
@@ -960,7 +975,7 @@ function decode (paymentRequest, network) {
 
   const toSign = Buffer.concat([Buffer.from(prefix, 'utf8'), Buffer.from(convert(wordsNoSig, 5, 8))])
   const payReqHash = sha256(toSign)
-  const sigPubkey = secp256k1.recover(payReqHash, sigBuffer, recoveryFlag, true)
+  const sigPubkey = Buffer.from(secp256k1.ecdsaRecover(sigBuffer, recoveryFlag, payReqHash, true))
   if (tagsContainItem(tags, TAGNAMES['19']) && tagsItems(tags, TAGNAMES['19']) !== sigPubkey.toString('hex')) {
     throw new Error('Lightning Payment Request signature pubkey does not match payee pubkey')
   }
@@ -989,7 +1004,23 @@ function decode (paymentRequest, network) {
     finalResult = Object.assign(finalResult, { timeExpireDate, timeExpireDateString })
   }
 
-  return orderKeys(finalResult)
+  return orderKeys(finalResult, true)
+}
+
+function getTagsObject (tags) {
+  const result = {}
+  tags.forEach(tag => {
+    if (tag.tagName === unknownTagName) {
+      if (!result.unknownTags) {
+        result.unknownTags = []
+      }
+      result.unknownTags.push(tag.data)
+    } else {
+      result[tag.tagName] = tag.data
+    }
+  })
+
+  return result
 }
 
 module.exports = {
